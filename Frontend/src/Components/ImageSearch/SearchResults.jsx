@@ -7,7 +7,6 @@ const filters = [
   { name: 'Tile Collections', options: ['Classic', 'Modern', 'Vintage'] },
   { name: 'Tile Type', options: ['Ceramic', 'Porcelain', 'Marble'] },
   { name: 'Factory Production', options: ['Factory 1', 'Factory 2', 'Factory 3'] },
-  { name: 'Tile Size', options: ['Small', 'Medium', 'Large'] },
 ];
 
 const ITEMS_PER_PAGE = 9;
@@ -17,13 +16,23 @@ const SearchResults = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFilters, setSelectedFilters] = useState({});
   const [openFilter, setOpenFilter] = useState(null);
+  const [sortOrder, setSortOrder] = useState('');
   const failedImages = useRef(new Set());
-
 
   const filteredResults = useMemo(() => {
     if (!searchResults.length) return [];
-    return searchResults;
-  }, [searchResults]);
+
+    let results = [...searchResults];
+
+    // Apply similarity score sorting
+    if (sortOrder === 'high-to-low') {
+      results.sort((a, b) => b.score - a.score);
+    } else if (sortOrder === 'low-to-high') {
+      results.sort((a, b) => a.score - b.score);
+    }
+
+    return results;
+  }, [searchResults, sortOrder]);
 
   const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -146,6 +155,51 @@ const SearchResults = () => {
             )}
           </div>
         ))}
+
+        {/* Relevance Sorting Dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => toggleFilterDropdown('Relevance')}
+            className="px-4 py-2 border rounded-lg text-gray-700 font-medium hover:bg-gray-100 flex items-center"
+          >
+            Relevance
+            <span
+              className={`ml-2 transform transition-transform duration-200 ${
+                openFilter === 'Relevance' ? 'rotate-180' : ''
+              }`}
+            >
+              ▼
+            </span>
+          </button>
+          {openFilter === 'Relevance' && (
+            <div className="absolute top-full left-0 mt-2 bg-white border rounded-lg shadow-lg w-48 z-10">
+              <div className="py-2 px-3">
+                <label className="block mb-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="relevance"
+                    value="high-to-low"
+                    checked={sortOrder === 'high-to-low'}
+                    onChange={() => setSortOrder('high-to-low')}
+                    className="mr-2"
+                  />
+                  High to Low
+                </label>
+                <label className="block cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="relevance"
+                    value="low-to-high"
+                    checked={sortOrder === 'low-to-high'}
+                    onChange={() => setSortOrder('low-to-high')}
+                    className="mr-2"
+                  />
+                  Low to High
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-10">
@@ -190,7 +244,7 @@ const SearchResults = () => {
             currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'hover:bg-gray-200'
           }`}
         >
-           Previous
+          Previous
         </button>
 
         {renderPageNumbers()}
@@ -202,7 +256,7 @@ const SearchResults = () => {
             currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'hover:bg-gray-200'
           }`}
         >
-          Next 
+          Next
         </button>
       </div>
     </div>
