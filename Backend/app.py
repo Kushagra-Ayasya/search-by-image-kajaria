@@ -11,7 +11,7 @@ from image_matcher import find_best_matches
 from clip_matcher import search_tiles_by_text
 
 app = Flask(__name__)
-CORS(app)  # Allow CORS for all routes
+CORS(app)  
 
 # Configuration
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -64,7 +64,6 @@ def index():
 
     return render_template('index.html', matches=matches, filename=filename)
 
-# ✅ API Route: Upload image
 @app.route('/upload', methods=['POST'])
 def upload_image():
     try:
@@ -111,7 +110,6 @@ def upload_image():
         traceback.print_exc()
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
-# ✅ API Route: Search by text
 @app.route('/search', methods=['POST'])
 def search_by_text():
     try:
